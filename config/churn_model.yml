@@ -1,0 +1,33 @@
+feature_table: customer_360_snapshot
+label_table: churn_label
+prediction_table: churn_prediction
+experiment_name: RetainFlow/churn_model
+registered_model_name: retainflow_churn_catboost
+register_model: false
+prediction_threshold: 0.2
+iterations: 500
+learning_rate: 0.01
+depth: 6
+random_seed: 42
+postgres:
+  dsn_env: RETAINFLOW_POSTGRES_DSN
+  default_dsn: "postgresql://retainflow:retainflow@localhost:55432/retainflow"
+  schema: retainflow
+mlflow:
+  enabled: true
+  tracking_uri: sqlite:////Users/surelmanda/.mlflow/mlflow.db
+  artifact_uri: file:///Users/surelmanda/.mlflow/artifacts
+  log_system_metrics: true
+  ui:
+    host: "127.0.0.1"
+    port: 5050
+    workers: 1
+    startup_timeout_seconds: 45
+artifacts:
+  class_distribution_plot_path: reports/figures/class_distribution_by_split.png
+  training_curve_path: reports/tables/catboost_training_curve.csv
+  confusion_matrix_table_path: reports/tables/confusion_matrix_by_split.csv
+  confusion_matrix_plot_path: reports/figures/confusion_matrix_by_split.png
+  shap_summary_path: reports/tables/shap_summary.csv
+  shap_agent_report_path: reports/tables/shap_agent_report.json
+  shap_feature_importance_plot_path: reports/figures/shap_feature_importance.png

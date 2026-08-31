@@ -1,0 +1,21 @@
+bundle:
+  name: retainflow
+
+include:
+  - resources/*.yml
+
+workspace:
+  profile: retainflow
+  host: https://dbc-36a650e5-7029.cloud.databricks.com
+
+variables:
+  cluster_id:
+    description: Existing Databricks cluster id used to run RetainFlow notebooks.
+  workspace_dir:
+    description: Workspace directory where RetainFlow notebooks are imported.
+    default: /Users/s239150.eps@gmail.com/RetainFlow
+
+targets:
+  dev:
+    mode: development
+    default: true

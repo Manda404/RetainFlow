@@ -1,0 +1,29 @@
+engine: postgres
+n_customers: 10000
+seed: 42
+reset_database: true
+history_start_date: "2020-01-01"
+history_end_date: "2026-06-30"
+snapshot_dates:
+  - date: "2021-12-31"
+    split_name: train
+  - date: "2022-12-31"
+    split_name: train
+  - date: "2023-12-31"
+    split_name: train
+  - date: "2024-12-31"
+    split_name: validation
+  - date: "2025-12-31"
+    split_name: test
+  - date: "2026-06-30"
+    split_name: backtest
+prediction_horizon_days: 90
+country_focus: France
+postgres:
+  dsn_env: RETAINFLOW_POSTGRES_DSN
+  default_dsn: "postgresql://retainflow:retainflow@localhost:55432/retainflow"
+  schema: retainflow
+docker:
+  service_name: postgres
+csv:
+  output_dir: data/raw/retainflow_csv

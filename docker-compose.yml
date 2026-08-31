@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: retainflow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: retainflow
+      POSTGRES_USER: retainflow
+      POSTGRES_PASSWORD: retainflow
+    ports:
+      - "55432:5432"
+    volumes:
+      - retainflow_postgres_data:/var/lib/postgresql/data
+      - ./sql/postgres:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U retainflow -d retainflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  retainflow_postgres_data:
