@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -14,98 +14,98 @@
           <div class="brand-logo">RF</div>
           <div>
             <h1>Retention Copilot</h1>
-            <p>Assistant IA conseiller assurance</p>
+            <p>AI assistant for insurance advisors</p>
           </div>
         </div>
 
         <section class="sidebar-section">
-          <div class="section-title">Mode de travail</div>
+          <div class="section-title">Work mode</div>
           <div class="mode-card active">
             <span>AI</span>
             <div>
-              <strong>Agent métier</strong>
-              <p>SQL + churn + SHAP + RAG + recommandation</p>
+              <strong>Business agent</strong>
+              <p>SQL + churn + SHAP + RAG + recommendation</p>
             </div>
           </div>
         </section>
 
         <section class="sidebar-section">
-          <div class="section-title">Parcours agent</div>
+          <div class="section-title">Agent workflow</div>
           <div id="pipeline" class="pipeline">
             <div class="pipeline-step" data-step="SupervisorAgent"><span>1</span> Supervisor</div>
             <div class="pipeline-step" data-step="SQLAgent"><span>2</span> SQL / KPI</div>
-            <div class="pipeline-step" data-step="RetentionAdvisorAgent"><span>3</span> Priorisation</div>
+            <div class="pipeline-step" data-step="RetentionAdvisorAgent"><span>3</span> Prioritization</div>
             <div class="pipeline-step" data-step="ExplainabilityAgent"><span>4</span> SHAP</div>
-            <div class="pipeline-step" data-step="StrategyRAGAgent"><span>5</span> Stratégie</div>
-            <div class="pipeline-step" data-step="DataVisualizationAgent"><span>6</span> Visualisation</div>
+            <div class="pipeline-step" data-step="StrategyRAGAgent"><span>5</span> Strategy</div>
+            <div class="pipeline-step" data-step="DataVisualizationAgent"><span>6</span> Visualization</div>
           </div>
         </section>
 
         <section class="sidebar-section">
-          <div class="section-title">Questions rapides</div>
+          <div class="section-title">Quick questions</div>
           <div class="quick-list">
-            <button data-message="Quels sont les 5 clients a contacter en urgence et pourquoi ?">
-              Top 5 clients urgents
-              <small>Priorisation conseiller</small>
+            <button data-message="Which 5 customers should be contacted urgently, and why?">
+              Top 5 urgent customers
+              <small>Advisor prioritization</small>
             </button>
-            <button data-message="Visualise les clients prioritaires par region">
-              Visualiser par région
-              <small>Carte d'action commerciale</small>
+            <button data-message="Visualize priority customers by region">
+              View by region
+              <small>Commercial action map</small>
             </button>
-            <button data-message="Quelle strategie marketing pour un client sensible au prix ?">
-              Stratégie prix
-              <small>Recherche RAG marketing</small>
+            <button data-message="What marketing strategy should be used for a price-sensitive customer?">
+              Price strategy
+              <small>Marketing RAG search</small>
             </button>
-            <button data-message="Redige un email pour le premier client prioritaire">
-              Brouillon email
-              <small>Message à valider</small>
+            <button data-message="Draft an email for the first priority customer">
+              Email draft
+              <small>Message to review</small>
             </button>
           </div>
         </section>
 
         <footer>
           <span id="apiStatusDot" class="status-dot"></span>
-          <span id="apiStatusText">Connexion API...</span>
+          <span id="apiStatusText">Connecting to API...</span>
         </footer>
       </aside>
 
       <main class="workspace">
         <header class="hero">
           <div>
-            <div class="eyebrow">Plateforme agentique retention</div>
-            <h2>Détecter les clients fragiles, comprendre le risque, proposer la bonne action.</h2>
+            <div class="eyebrow">Agentic retention platform</div>
+            <h2>Detect vulnerable customers, understand risk, recommend the right action.</h2>
             <p>
-              RetainFlow transforme les prédictions churn, les signaux client et les documents
-              de stratégie en décisions lisibles pour les équipes métier.
+              RetainFlow turns churn predictions, customer signals, and strategy documents into
+              readable decisions for business teams.
             </p>
           </div>
           <div class="hero-score">
-            <span>Décision</span>
-            <strong id="heroDecision">Prête</strong>
-            <small>API locale RetainFlow</small>
+            <span>Decision</span>
+            <strong id="heroDecision">Ready</strong>
+            <small>Local RetainFlow API</small>
           </div>
         </header>
 
         <section class="quick-actions">
-          <article class="quick-card" data-message="Quels sont les 5 clients a contacter en urgence et pourquoi ?">
+          <article class="quick-card" data-message="Which 5 customers should be contacted urgently, and why?">
             <span>01</span>
-            <strong>Prioriser les contacts</strong>
-            <p>Identifier les clients à traiter aujourd'hui avec justification.</p>
+            <strong>Prioritize contacts</strong>
+            <p>Identify the customers to handle today with a clear rationale.</p>
           </article>
-          <article class="quick-card" data-message="Pourquoi le client CUST_000123 risque de churner ?">
+          <article class="quick-card" data-message="Why is customer CUST_000123 at risk of churning?">
             <span>02</span>
-            <strong>Expliquer un client</strong>
-            <p>Lire les facteurs de risque et les éléments SHAP disponibles.</p>
+            <strong>Explain a customer</strong>
+            <p>Read risk factors and available SHAP explanations.</p>
           </article>
-          <article class="quick-card" data-message="Visualise les clients prioritaires par region">
+          <article class="quick-card" data-message="Visualize priority customers by region">
             <span>03</span>
-            <strong>Créer un visuel</strong>
-            <p>Produire un graphique Plotly à partir des résultats SQL.</p>
+            <strong>Create a visual</strong>
+            <p>Generate a Plotly chart from SQL results.</p>
           </article>
-          <article class="quick-card" data-message="Quelle strategie marketing pour un client sensible au prix ?">
+          <article class="quick-card" data-message="What marketing strategy should be used for a price-sensitive customer?">
             <span>04</span>
-            <strong>Consulter la stratégie</strong>
-            <p>Rechercher les leviers marketing dans le corpus RAG.</p>
+            <strong>Consult strategy</strong>
+            <p>Search marketing levers in the RAG corpus.</p>
           </article>
         </section>
 
@@ -113,10 +113,10 @@
           <article class="chat-panel">
             <div class="panel-title">
               <div>
-                <h3>Conversation conseiller</h3>
-                <p>Pose une question métier. L'agent route vers SQL, KPI, RAG ou visualisation.</p>
+                <h3>Advisor conversation</h3>
+                <p>Ask a business question. The agent routes to SQL, KPI, RAG, or visualization.</p>
               </div>
-              <button id="clearBtn" type="button">Réinitialiser</button>
+              <button id="clearBtn" type="button">Reset</button>
             </div>
 
             <div id="messages" class="messages"></div>
@@ -126,15 +126,15 @@
                 id="userInput"
                 type="text"
                 autocomplete="off"
-                placeholder="Ex : Quels clients dois-je contacter en priorité cette semaine ?"
+                placeholder="Example: Which customers should I contact first this week?"
                 required
               />
               <label>
-                Limite
+                Limit
                 <input id="limitInput" type="number" min="1" max="200" value="5" />
               </label>
               <button id="sendBtn" type="submit">
-                <span>Envoyer</span>
+                <span>Send</span>
                 <b>↵</b>
               </button>
             </form>
@@ -143,10 +143,10 @@
           <aside class="insight-panel">
             <div class="panel-title">
               <div>
-                <h3>Résultat agent</h3>
+                <h3>Agent result</h3>
                 <p id="activeAgent">SupervisorAgent</p>
               </div>
-              <span id="analysisState">En attente</span>
+              <span id="analysisState">Waiting</span>
             </div>
 
             <div class="risk-ring">
@@ -156,29 +156,29 @@
               </svg>
               <div>
                 <strong id="scoreValue">--</strong>
-                <span id="riskLevel">Aucune analyse</span>
+                <span id="riskLevel">No analysis</span>
               </div>
             </div>
 
             <div class="kpi-grid">
-              <div><span>Réponse</span><strong id="responseType">--</strong></div>
-              <div><span>Lignes</span><strong id="rowCount">0</strong></div>
-              <div><span>Action</span><strong id="nextAction">À définir</strong></div>
-              <div><span>Confiance</span><strong id="confidenceLevel">--</strong></div>
+              <div><span>Response</span><strong id="responseType">--</strong></div>
+              <div><span>Rows</span><strong id="rowCount">0</strong></div>
+              <div><span>Action</span><strong id="nextAction">To define</strong></div>
+              <div><span>Confidence</span><strong id="confidenceLevel">--</strong></div>
             </div>
 
             <div class="agent-card">
-              <h4>Synthèse décision</h4>
-              <p id="summaryBox">Aucune analyse lancée.</p>
+              <h4>Decision summary</h4>
+              <p id="summaryBox">No analysis started.</p>
             </div>
 
             <div class="agent-card">
               <div class="card-row">
-                <h4>Clients prioritaires</h4>
-                <small id="priorityCount">0 client</small>
+                <h4>Priority customers</h4>
+                <small id="priorityCount">0 customers</small>
               </div>
               <div id="priorityList" class="priority-list">
-                <p>Aucune priorité chargée.</p>
+                <p>No priority loaded.</p>
               </div>
             </div>
           </aside>
@@ -187,29 +187,29 @@
         <section class="result-panel">
           <div class="panel-title">
             <div>
-              <h3>Exploration des résultats</h3>
-              <p>Table, graphique Plotly et traces SQL/RAG retournées par les agents.</p>
+              <h3>Results</h3>
+              <p>Rows, charts, SQL, and retrieval traces returned by the agents.</p>
             </div>
             <div class="tabs">
               <button class="tab active" type="button" data-tab="tablePanel">Table</button>
-              <button class="tab" type="button" data-tab="plotPanel">Graphique</button>
+              <button class="tab" type="button" data-tab="plotPanel">Chart</button>
               <button class="tab" type="button" data-tab="metadataPanel">SQL / Sources</button>
             </div>
           </div>
 
           <div id="tablePanel" class="tab-panel active">
-            <div id="tableOutput" class="table-wrap">Aucune table à afficher.</div>
+            <div id="tableOutput" class="table-wrap">No table to display.</div>
           </div>
           <div id="plotPanel" class="tab-panel">
-            <div id="plotOutput" class="plot-wrap">Aucun graphique pour le moment.</div>
+            <div id="plotOutput" class="plot-wrap">No chart yet.</div>
           </div>
           <div id="metadataPanel" class="tab-panel">
-            <pre id="metadataOutput">En attente.</pre>
+            <div id="metadataOutput" class="metadata-view">Waiting.</div>
           </div>
         </section>
       </main>
     </div>
 
-    <script src="./app.js"></script>
+    <script src="./app.js?v=20260902-en-ui-3"></script>
   </body>
 </html>

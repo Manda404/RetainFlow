@@ -8,6 +8,16 @@ from pathlib import Path
 from retainflow.agents.base import AgentResponse
 from retainflow.tools.rag_tool import StrategyRAGTool
 
+TITLE_TRANSLATIONS = {
+    "Strategie Retention - Clients Sensibles Au Prix": "Retention Strategy - Price-Sensitive Customers",
+    "Strategie Retention - Insatisfaction Service": "Retention Strategy - Service Dissatisfaction",
+    "Strategie Retention - Incidents De Paiement": "Retention Strategy - Payment Incidents",
+    "Strategie Retention - Renouvellement Proche": "Retention Strategy - Upcoming Renewal",
+    "Strategie Retention - Reengagement Digital": "Retention Strategy - Digital Re-Engagement",
+    "Strategie Retention - Sinistre Recent": "Retention Strategy - Recent Claim",
+    "Strategie Retention - Client Haute Valeur": "Retention Strategy - High-Value Customer",
+}
+
 
 class StrategyRAGAgent:
     """Retrieve targeted marketing strategies from the local RAG corpus."""
@@ -32,15 +42,23 @@ class StrategyRAGAgent:
                 data=[],
             )
 
-        matches = self.rag_tool.search(question, top_k=limit)
+        matches, retrieval_metadata = self.rag_tool.corrective_search(question, top_k=limit)
         if matches.empty:
-            answer = "Aucune strategie marketing ciblee trouvee pour cette question."
+            answer = "No targeted marketing strategy was found for this question."
         else:
+            matches = matches.copy()
+            matches["title"] = matches["title"].map(lambda title: TITLE_TRANSLATIONS.get(title, title))
             titles = ", ".join(matches["title"].head(3).tolist())
-            answer = f"{len(matches)} strategies marketing ciblees trouvees: {titles}."
+            if retrieval_metadata["corrected"]:
+                answer = (
+                    f"Corrective RAG enriched the query and found {len(matches)} targeted "
+                    f"marketing strategies: {titles}."
+                )
+            else:
+                answer = f"{len(matches)} targeted marketing strategies found: {titles}."
         return AgentResponse(
             agent_name="StrategyRAGAgent",
             answer=answer,
             data=matches,
-            metadata={"docs_dir": str(self.docs_dir), "top_k": limit},
+            metadata={"docs_dir": str(self.docs_dir), "top_k": limit, **retrieval_metadata},
         )

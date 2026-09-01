@@ -19,23 +19,25 @@ class KPIAgent:
         lowered = question.lower()
         if "split" in lowered or "churn rate" in lowered or "taux de churn" in lowered:
             result = self.kpi_tool.churn_rate_by_split()
-            label = "taux de churn par split"
-        elif "agence" in lowered and "semaine" in lowered:
+            label = "churn rate by split"
+        elif any(word in lowered for word in ("agence", "agency")) and any(
+            word in lowered for word in ("semaine", "week", "weekly")
+        ):
             result = self.kpi_tool.weekly_contact_rate_by_agency()
-            label = "contacts de la semaine par agence"
-        elif "agence" in lowered:
+            label = "weekly contacts by agency"
+        elif any(word in lowered for word in ("agence", "agency")):
             result = self.kpi_tool.priority_clients_by_agency()
-            label = "clients prioritaires par agence"
-        elif "action" in lowered or "recommand" in lowered:
+            label = "priority customers by agency"
+        elif any(word in lowered for word in ("action", "recommend", "recommand", "distribution")):
             result = self.kpi_tool.recommended_actions_distribution()
-            label = "distribution des actions recommandees"
+            label = "recommended actions distribution"
         else:
             result = self.kpi_tool.priority_clients_by_region()
-            label = "clients prioritaires par region"
+            label = "priority customers by region"
 
         return AgentResponse(
             agent_name="KPIAgent",
-            answer=f"KPI calcule: {label}. {result.row_count} lignes retournees.",
+            answer=f"KPI computed: {label}. {result.row_count} returned rows.",
             data=result.dataframe,
             metadata={"sql": result.sql, "kpi": label, "row_count": result.row_count},
         )

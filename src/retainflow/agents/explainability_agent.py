@@ -22,9 +22,9 @@ class ExplainabilityAgent:
         """Return top global churn drivers from the SHAP training artifact."""
         summary = self.explainability_tool.global_shap_summary(top_n=top_n)
         drivers = self.explainability_tool.top_business_drivers(top_n=top_n)
-        answer = "Principaux facteurs globaux du modele: " + "; ".join(drivers)
+        answer = "Top global model drivers: " + "; ".join(drivers)
         if not drivers:
-            answer = "Aucun artefact SHAP global disponible pour le moment."
+            answer = "No global SHAP artifact is available yet."
         return AgentResponse(
             agent_name="ExplainabilityAgent",
             answer=answer,

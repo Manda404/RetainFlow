@@ -4,8 +4,13 @@ environment: local
 llm:
   provider_env: LLM_PROVIDER
   model_env: LLM_MODEL
-  api_key_env: OPENAI_API_KEY
-  enabled: false
+  enabled_env: RETAINFLOW_LLM_ENABLED
+  default_provider: groq
+  default_model: llama-3.3-70b-versatile
+  api_key_env_by_provider:
+    groq: GROQ_API_KEY
+    openai: OPENAI_API_KEY
+  enabled: true
 
 database:
   dsn_env: RETAINFLOW_POSTGRES_DSN

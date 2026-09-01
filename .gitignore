@@ -31,3 +31,5 @@ reports/drift/*
 !reports/tables/.gitkeep
 !reports/drift/.gitkeep
 .matplotlib-cache
+.env-olds
+.run/

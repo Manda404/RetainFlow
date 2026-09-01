@@ -94,10 +94,10 @@ class KPITool:
             SELECT
               q.agency_name,
               q.region,
-              count(*) AS clients_a_contacter,
+              count(*) AS customers_to_contact,
               round(avg(q.churn_probability)::numeric, 4) AS avg_churn_probability,
               round(avg(CASE WHEN r.human_review_status = 'APPROVED' THEN 1 ELSE 0 END)::numeric, 4)
-                AS taux_actions_validees
+                AS approved_action_rate
             FROM {self.config.retention_queue_fqn} q
             LEFT JOIN {self.config.retention_recommendation_fqn} r
               ON r.customer_id = q.customer_id
@@ -105,7 +105,7 @@ class KPITool:
              AND r.mlflow_run_id = q.mlflow_run_id
             WHERE q.scored_at >= date_trunc('week', current_date)
             GROUP BY q.agency_name, q.region
-            ORDER BY clients_a_contacter DESC, avg_churn_probability DESC
+            ORDER BY customers_to_contact DESC, avg_churn_probability DESC
             """,
             limit=limit,
         )

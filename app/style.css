@@ -410,20 +410,21 @@ button {
 .chat-panel {
   display: flex;
   flex-direction: column;
-  min-height: 600px;
+  min-height: 520px;
 }
 
 .messages {
   flex: 1;
-  max-height: 455px;
+  min-height: 300px;
+  max-height: 520px;
   overflow: auto;
-  padding: 22px;
+  padding: 18px 22px;
 }
 
 .message {
   display: flex;
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
   animation: rise 0.22s ease;
 }
 
@@ -462,12 +463,17 @@ button {
 }
 
 .bubble {
-  max-width: min(790px, 82%);
+  max-width: min(700px, 78%);
   border: 1px solid var(--line);
   border-radius: 8px;
   background: white;
-  padding: 15px 17px;
-  line-height: 1.55;
+  padding: 13px 15px;
+  line-height: 1.48;
+}
+
+.message.has-plot .bubble {
+  width: min(980px, 94%);
+  max-width: min(980px, 94%);
 }
 
 .message.user .bubble {
@@ -478,11 +484,61 @@ button {
 
 .bubble strong {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 7px;
+  color: #111827;
+  font-size: 13px;
+}
+
+.bubble p,
+.bubble-content {
+  color: #182337;
+  font-size: 13px;
 }
 
 .bubble p {
+  margin: 0;
   white-space: pre-wrap;
+}
+
+.message-section {
+  margin-top: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
+.message-section span {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.driver-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.driver-list li {
+  border-radius: 8px;
+  background: #f8fbfd;
+  color: #243447;
+  padding: 7px 9px;
+  font-size: 12px;
+}
+
+.inline-plot {
+  width: 100%;
+  min-height: 400px;
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  overflow: hidden;
 }
 
 .composer {
@@ -702,12 +758,17 @@ button {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #f8fbfd;
+  padding: 4px;
 }
 
 .tab {
-  border: 1px solid var(--line);
+  border: 0;
   border-radius: 999px;
-  background: white;
+  background: transparent;
   color: var(--muted);
   padding: 8px 12px;
   font-size: 12px;
@@ -739,6 +800,80 @@ button {
 
 .plot-wrap {
   min-height: 340px;
+}
+
+.metadata-view {
+  display: grid;
+  gap: 14px;
+  color: #334155;
+}
+
+.metadata-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.metadata-card,
+.metadata-section {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+}
+
+.metadata-card {
+  min-height: 78px;
+  padding: 12px;
+}
+
+.metadata-card span,
+.metadata-chip {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.metadata-card strong {
+  display: block;
+  overflow: hidden;
+  margin-top: 7px;
+  color: #182337;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metadata-section {
+  padding: 14px;
+}
+
+.metadata-section h4 {
+  margin: 0 0 10px;
+  color: #182337;
+  font-size: 14px;
+}
+
+.metadata-section p {
+  margin: 0;
+  color: #44546a;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.metadata-section pre {
+  max-height: 320px;
+  overflow: auto;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #d9e8ff;
+  padding: 14px;
+}
+
+.metadata-chip {
+  display: inline-flex;
+  margin-top: 10px;
+  border-radius: 999px;
+  background: #edf7fb;
+  padding: 6px 9px;
 }
 
 table {
@@ -831,7 +966,8 @@ pre {
   }
 
   .quick-actions,
-  .kpi-grid {
+  .kpi-grid,
+  .metadata-grid {
     grid-template-columns: 1fr;
   }
 

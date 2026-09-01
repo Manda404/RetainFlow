@@ -17,7 +17,7 @@ def _priority_row(action_type: str = "LOYALTY_DISCOUNT_REVIEW") -> dict[str, obj
         "recommended_action_type": action_type,
         "recommended_channel": "PHONE",
         "estimated_offer_value": 120.0,
-        "action_reason": "hausse de prime recente; renouvellement proche",
+        "action_reason": "recent premium increase; upcoming renewal",
         "mlflow_run_id": "run-1",
     }
 
@@ -27,11 +27,11 @@ def test_retention_strategy_engine_builds_human_review_recommendation() -> None:
     row = recommendations.iloc[0]
 
     assert row["recommendation_id"].startswith("REC_")
-    assert row["recommended_offer"] == "Remise fidelite controlee - budget max 120.00 EUR"
+    assert row["recommended_offer"] == "Controlled loyalty discount - max budget 120.00 EUR"
     assert row["human_review_status"] == "PENDING_REVIEW"
     assert row["approval_decision"] is None
     assert "Nadia Martin" in row["advisor_message"]
-    assert "hausse de prime recente" in row["decision_rationale"]
+    assert "recent premium increase" in row["decision_rationale"]
 
 
 def test_retention_strategy_engine_falls_back_to_proactive_check() -> None:
@@ -39,7 +39,7 @@ def test_retention_strategy_engine_falls_back_to_proactive_check() -> None:
         pd.DataFrame([_priority_row("UNKNOWN_ACTION")])
     )
 
-    assert "Controle retention proactif" in recommendations.iloc[0]["recommended_offer"]
+    assert "Proactive retention check" in recommendations.iloc[0]["recommended_offer"]
 
 
 def test_retention_strategy_engine_handles_empty_queue() -> None:

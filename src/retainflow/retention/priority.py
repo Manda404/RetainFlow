@@ -290,25 +290,25 @@ class RetentionPriorityScorer:
     def _action_reason(self, row: pd.Series) -> str:
         reasons = []
         if row["premium_increase_pct_max_12m"] >= 0.1:
-            reasons.append("hausse de prime recente")
+            reasons.append("recent premium increase")
         if row["competitor_price_index_avg_6m"] < 0.95:
-            reasons.append("pression tarifaire concurrente")
+            reasons.append("competitor price pressure")
         if row["complaints_6m"] >= 2:
-            reasons.append("reclamations recentes")
+            reasons.append("recent complaints")
         if row["unresolved_case_count_12m"] >= 1:
-            reasons.append("dossier service non resolu")
+            reasons.append("unresolved service case")
         if pd.notna(row["renewal_days_min"]) and row["renewal_days_min"] <= 45:
-            reasons.append("renouvellement proche")
+            reasons.append("upcoming renewal")
         if row["payment_incidents_6m"] >= 1:
-            reasons.append("incident de paiement")
+            reasons.append("payment incident")
         if row["digital_sessions_30d"] <= 1:
-            reasons.append("faible engagement digital")
-        return "; ".join(reasons[:4]) or "risque churn eleve et valeur client significative"
+            reasons.append("low digital engagement")
+        return "; ".join(reasons[:4]) or "high churn risk and significant customer value"
 
     def _business_context(self, row: pd.Series) -> str:
         return (
             f"{row['customer_segment']} | {row['main_product_family']} | "
-            f"{row['region']} | valeur annuelle estimee {row['estimated_annual_value']:.2f} EUR"
+            f"{row['region']} | estimated annual value {row['estimated_annual_value']:.2f} EUR"
         )
 
     def _empty_queue(self) -> pd.DataFrame:

@@ -27,57 +27,57 @@ class RetentionStrategy:
 STRATEGY_CATALOG = {
     "LOYALTY_DISCOUNT_REVIEW": RetentionStrategy(
         action_type="LOYALTY_DISCOUNT_REVIEW",
-        offer_label="Remise fidelite controlee",
+        offer_label="Controlled loyalty discount",
         message_template=(
-            "Recontacter le client pour reconnaitre la sensibilite prix et proposer "
-            "une remise fidelite adaptee a la valeur du portefeuille."
+            "Contact the customer to acknowledge price sensitivity and propose "
+            "a loyalty discount aligned with portfolio value."
         ),
-        default_next_step="Validation manager retention avant proposition commerciale.",
+        default_next_step="Retention manager approval before commercial proposal.",
     ),
     "SERVICE_RECOVERY_CALL": RetentionStrategy(
         action_type="SERVICE_RECOVERY_CALL",
-        offer_label="Appel de resolution prioritaire",
+        offer_label="Priority resolution call",
         message_template=(
-            "Appeler le client pour traiter les irritants service, clarifier le dossier "
-            "ouvert et confirmer une action corrective."
+            "Call the customer to address service pain points, clarify the open case, "
+            "and confirm a corrective action."
         ),
-        default_next_step="Assigner un conseiller service senior sous 24h.",
+        default_next_step="Assign a senior service advisor within 24 hours.",
     ),
     "RENEWAL_SAVE_CALL": RetentionStrategy(
         action_type="RENEWAL_SAVE_CALL",
-        offer_label="Appel sauvegarde renouvellement",
+        offer_label="Renewal save call",
         message_template=(
-            "Contacter le client avant echeance pour expliquer la valeur des garanties "
-            "et proposer un ajustement si necessaire."
+            "Contact the customer before renewal to explain coverage value "
+            "and propose an adjustment if needed."
         ),
-        default_next_step="Planifier un appel sortant avant la prochaine echeance.",
+        default_next_step="Schedule an outbound call before the next renewal date.",
     ),
     "PAYMENT_PLAN_PROPOSAL": RetentionStrategy(
         action_type="PAYMENT_PLAN_PROPOSAL",
-        offer_label="Amenagement de paiement",
+        offer_label="Payment plan adjustment",
         message_template=(
-            "Proposer une solution de paiement plus souple afin de reduire le risque "
-            "de resiliation lie aux incidents de paiement."
+            "Offer a more flexible payment solution to reduce churn risk "
+            "linked to payment incidents."
         ),
-        default_next_step="Verifier eligibilite paiement fractionne.",
+        default_next_step="Check eligibility for split payment.",
     ),
     "DIGITAL_REENGAGEMENT": RetentionStrategy(
         action_type="DIGITAL_REENGAGEMENT",
-        offer_label="Reactivation digitale accompagnee",
+        offer_label="Assisted digital reactivation",
         message_template=(
-            "Envoyer une sequence de reengagement digital avec rappel des services "
-            "utiles et proposition de rendez-vous si besoin."
+            "Send a digital re-engagement sequence with reminders about useful services "
+            "and offer an appointment if needed."
         ),
-        default_next_step="Declencher campagne email personnalisee.",
+        default_next_step="Trigger a personalized email campaign.",
     ),
     "PROACTIVE_RETENTION_CHECK": RetentionStrategy(
         action_type="PROACTIVE_RETENTION_CHECK",
-        offer_label="Controle retention proactif",
+        offer_label="Proactive retention check",
         message_template=(
-            "Verifier la situation client et proposer un point de contact preventif "
-            "avant degradation du risque."
+            "Review the customer's situation and propose a preventive contact point "
+            "before risk worsens."
         ),
-        default_next_step="Creer une tache conseiller pour qualification.",
+        default_next_step="Create an advisor task for qualification.",
     ),
 }
 
@@ -164,22 +164,22 @@ class RetentionStrategyEngine:
 
     def _recommended_offer(self, row: pd.Series) -> str:
         strategy = row["strategy"]
-        return f"{strategy.offer_label} - budget max {float(row['estimated_offer_value']):.2f} EUR"
+        return f"{strategy.offer_label} - max budget {float(row['estimated_offer_value']):.2f} EUR"
 
     def _advisor_message(self, row: pd.Series) -> str:
         strategy = row["strategy"]
         customer_name = f"{row['first_name']} {row['last_name']}"
         return (
             f"{customer_name}: {strategy.message_template} "
-            f"Canal recommande: {row['recommended_channel']}."
+            f"Recommended channel: {row['recommended_channel']}."
         )
 
     def _decision_rationale(self, row: pd.Series) -> str:
         return (
-            f"Priorite {row['priority_tier']} avec score {float(row['priority_score']):.2f}. "
-            f"Probabilite de churn {float(row['churn_probability']):.1%}. "
-            f"Valeur sauvee attendue {float(row['expected_saved_value']):.2f} EUR. "
-            f"Raisons: {row['action_reason']}."
+            f"Priority {row['priority_tier']} with score {float(row['priority_score']):.2f}. "
+            f"Churn probability {float(row['churn_probability']):.1%}. "
+            f"Expected saved value {float(row['expected_saved_value']):.2f} EUR. "
+            f"Reasons: {row['action_reason']}."
         )
 
     def _empty_recommendations(self) -> pd.DataFrame:

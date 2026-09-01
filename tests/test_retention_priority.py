@@ -85,7 +85,7 @@ def test_retention_priority_scorer_orders_business_priority() -> None:
     assert queue.iloc[0]["priority_tier"] in {"HIGH", "CRITICAL"}
     assert queue.iloc[0]["recommended_action_type"] == "LOYALTY_DISCOUNT_REVIEW"
     assert queue.iloc[0]["recommended_channel"] == "PHONE"
-    assert "hausse de prime recente" in queue.iloc[0]["action_reason"]
+    assert "recent premium increase" in queue.iloc[0]["action_reason"]
 
 
 def test_retention_priority_scorer_handles_empty_candidates() -> None:

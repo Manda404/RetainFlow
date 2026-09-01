@@ -19,7 +19,7 @@ class RetentionAdvisorAgent:
         result = self.retention_tool.top_priority_clients(limit=limit)
         return AgentResponse(
             agent_name="RetentionAdvisorAgent",
-            answer=f"{result.row_count} clients prioritaires identifies pour action retention.",
+            answer=f"{result.row_count} priority customers identified for retention action.",
             data=result.dataframe,
             metadata={"sql": result.sql, "row_count": result.row_count},
         )
@@ -29,7 +29,7 @@ class RetentionAdvisorAgent:
         result = self.retention_tool.top_recommendations(limit=limit)
         return AgentResponse(
             agent_name="RetentionAdvisorAgent",
-            answer=f"{result.row_count} recommandations retention pretes pour revue humaine.",
+            answer=f"{result.row_count} retention recommendations ready for human review.",
             data=result.dataframe,
             metadata={"sql": result.sql, "row_count": result.row_count},
         )

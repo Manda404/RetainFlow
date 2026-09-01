@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
+import plotly.express as px
 from fastapi.testclient import TestClient
 
 from retainflow.agents.base import AgentResponse
@@ -46,15 +47,33 @@ def test_serialize_dataframe_response() -> None:
 def test_serialize_email_draft_response() -> None:
     response = AgentResponse(
         agent_name="EmailDraftingAgent",
-        answer="Brouillon pret.",
-        data=DummyDraft(subject="Sujet", body="Message", channel="EMAIL"),
+        answer="Draft ready.",
+        data=DummyDraft(subject="Subject", body="Message", channel="EMAIL"),
     )
 
     payload = serialize_agent_response(response)
 
     assert payload["response_type"] == "email_draft"
-    assert payload["data"]["subject"] == "Sujet"
+    assert payload["data"]["subject"] == "Subject"
     assert payload["data"]["channel"] == "EMAIL"
+
+
+def test_serialize_plotly_response_with_array_values() -> None:
+    dataframe = pd.DataFrame(
+        {
+            "region": ["North", "South"],
+            "priority_tier": ["HIGH", "CRITICAL"],
+            "clients": [8, 12],
+        }
+    )
+    figure = px.bar(dataframe, x="region", y="clients", color="priority_tier")
+    response = AgentResponse(agent_name="DataVisualizationAgent", answer="ok", data=figure)
+
+    payload = serialize_agent_response(response)
+
+    assert payload["response_type"] == "plotly"
+    assert payload["figure"]["data"][0]["type"] == "bar"
+    assert isinstance(payload["figure"]["data"][0]["x"], list)
 
 
 def test_no_external_branding_in_app_implementation() -> None:

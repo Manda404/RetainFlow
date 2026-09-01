@@ -19,12 +19,12 @@ class EmailDraftingAgent:
         if recommendations.empty:
             return AgentResponse(
                 agent_name="EmailDraftingAgent",
-                answer="Aucune recommandation disponible pour rediger un brouillon.",
+                answer="No recommendation is available for drafting a message.",
             )
         draft = self.email_tool.draft_from_recommendation(recommendations.iloc[0])
         return AgentResponse(
             agent_name="EmailDraftingAgent",
-            answer="Brouillon genere. Validation humaine obligatoire avant envoi.",
+            answer="Draft generated. Human approval is required before sending.",
             data=draft,
             metadata={"channel": draft.channel, "requires_human_approval": True},
         )

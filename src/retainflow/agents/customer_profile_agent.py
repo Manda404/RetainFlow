@@ -22,9 +22,9 @@ class CustomerProfileAgent:
         """Return the latest available profile for one customer."""
         result = self.profile_tool.by_customer_id(customer_id=customer_id)
         if result.dataframe.empty:
-            answer = f"Aucun profil trouve pour le client {customer_id}."
+            answer = f"No profile found for customer {customer_id}."
         else:
-            answer = f"Profil client charge pour {customer_id}: {result.row_count} lignes trouvees."
+            answer = f"Customer profile loaded for {customer_id}: {result.row_count} rows found."
         return AgentResponse(
             agent_name="CustomerProfileAgent",
             answer=answer,

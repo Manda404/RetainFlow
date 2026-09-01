@@ -8,6 +8,25 @@ Le projet met en place une chaîne complète : une base PostgreSQL locale, un mo
 
 L'objectif n'est pas seulement de produire un score. L'objectif est d'aider un conseiller, un gestionnaire ou une équipe métier à comprendre les clients prioritaires, à justifier les décisions et à choisir une action adaptée.
 
+## Présentation Du Projet
+
+RetainFlow est une plateforme analytique et agentique pour la rétention client dans l'assurance. Elle simule un système d'information assurance complet, entraîne un modèle de prédiction du churn, explique les facteurs de risque avec SHAP, construit une file de clients prioritaires et expose le tout dans une interface web locale pilotée par une API FastAPI.
+
+Le projet couvre le cycle complet d'un cas d'usage data science métier :
+
+- génération d'un dataset assurance réaliste ;
+- chargement des données dans PostgreSQL ;
+- construction d'un snapshot analytique client 360 ;
+- entraînement d'un modèle CatBoost pour prédire le churn ;
+- suivi des expériences avec MLflow ;
+- analyse du drift et du data leakage ;
+- génération d'explications SHAP ;
+- priorisation des clients à contacter ;
+- recommandation d'actions de rétention ;
+- interrogation du système avec des agents SQL, KPI, RAG, visualisation et email.
+
+RetainFlow est donc à la fois un projet machine learning, un socle data engineering local, et une première version d'assistant métier capable de transformer des prédictions en décisions actionnables.
+
 ## Problématique
 
 Dans une compagnie d'assurance, une résiliation est rarement causée par un seul événement. Elle peut venir d'une hausse de prime, d'un sinistre mal vécu, d'un paiement rejeté, d'une faible interaction avec l'agence, d'une pression concurrentielle ou d'un manque de réponse commerciale.
@@ -60,32 +79,92 @@ RetainFlow construit une file de clients prioritaires et propose des actions de 
 
 La couche agentique transforme le projet en assistant interactif. Les agents peuvent interroger SQL, produire des KPI, rechercher dans les documents marketing, générer des graphiques, expliquer une prédiction ou rédiger un email.
 
-## Architecture Simplifiée
+## Architecture
 
-```text
-Utilisateur métier
-        |
-        v
-Interface web RetainFlow
-        |
-        v
-API locale FastAPI
-        |
-        v
-Supervisor Agent
-        |
-        +--> SQL / KPI Agent --------> PostgreSQL
-        |
-        +--> Retention Advisor ------> prédictions churn
-        |
-        +--> Explainability Agent ---> rapports SHAP
-        |
-        +--> Strategy RAG Agent -----> documents marketing
-        |
-        +--> Visualization Agent ----> graphiques Plotly
-        |
-        +--> Email Agent ------------> brouillons de message
+```mermaid
+flowchart LR
+  U[Utilisateur métier] --> UI[Interface web locale]
+  UI --> API[FastAPI RetainFlow Agent API]
+  API --> S[SupervisorAgent]
+
+  S --> SQLA[SQLAgent]
+  S --> KPIA[KPIAgent]
+  S --> RA[RetentionAdvisorAgent]
+  S --> XA[ExplainabilityAgent]
+  S --> CPA[CustomerProfileAgent]
+  S --> RAGA[StrategyRAGAgent]
+  S --> VIZA[DataVisualizationAgent]
+  S --> EA[EmailDraftingAgent]
+
+  SQLA --> SQLT[SQLTool]
+  KPIA --> KPIT[KPITool]
+  RA --> RT[RetentionTool]
+  CPA --> CPT[CustomerProfileTool]
+  XA --> XT[ExplainabilityTool]
+  RAGA --> RAGT[StrategyRAGTool]
+  VIZA --> VIZT[VisualizationTool]
+  EA --> ET[EmailDraftingTool]
+
+  SQLT --> PG[(PostgreSQL)]
+  KPIT --> PG
+  RT --> PG
+  CPT --> PG
+
+  XT --> SHAP[SHAP reports]
+  RAGT --> DOCS[Marketing strategy documents]
+  VIZT --> PLOT[Plotly figures]
+  ET --> DRAFT[Email drafts]
+
+  PG --> RESP[AgentResponse]
+  SHAP --> RESP
+  DOCS --> RESP
+  PLOT --> RESP
+  DRAFT --> RESP
+  RESP --> S
+  S --> API
+  API --> UI
 ```
+
+## Pipeline Data Et Machine Learning
+
+```mermaid
+flowchart TD
+  CFG[Configuration YAML] --> GEN[Synthetic insurance data generator]
+  GEN --> CSV[CSV source files]
+  CSV --> ETL[CSV ETL pipeline]
+  ETL --> PG[(PostgreSQL retainflow schema)]
+
+  PG --> SNAP[Customer 360 snapshots]
+  PG --> LABEL[Churn labels]
+  SNAP --> SPLIT[Temporal split]
+  LABEL --> SPLIT
+
+  SPLIT --> DRIFT[Drift analysis]
+  SPLIT --> LEAK[Data leakage audit]
+  DRIFT --> FEAT[Feature selection and preprocessing]
+  LEAK --> FEAT
+
+  FEAT --> MODEL[CatBoost churn model]
+  MODEL --> PRED[Churn predictions]
+  MODEL --> MLFLOW[(MLflow tracking)]
+  MODEL --> SHAP[SHAP explainability]
+
+  PRED --> QUEUE[Retention priority queue]
+  SHAP --> QUEUE
+  QUEUE --> REC[Retention recommendations]
+
+  QUEUE --> API[FastAPI]
+  REC --> API
+  SHAP --> API
+  PG --> API
+```
+
+Lecture rapide :
+
+- l'interface web envoie les questions métier à l'API FastAPI ;
+- le `SupervisorAgent` choisit les agents nécessaires selon l'intention ;
+- les agents utilisent des tools contrôlés pour interroger PostgreSQL, lire les artefacts SHAP, rechercher dans les documents RAG ou générer un graphique ;
+- le pipeline data/ML prépare les données, entraîne CatBoost, produit les prédictions et alimente les tables de rétention utilisées par les agents.
 
 ## Structure Du Projet
 
@@ -106,46 +185,6 @@ RetainFlow/
 
 Les dossiers historiques ou non essentiels ont été retirés afin de garder une architecture plus claire.
 
-## Parcours Des Notebooks
-
-Les notebooks sont pensés pour être exécutés dans l'ordre.
-
-```text
-00_postgres_bootstrap_retainflow.ipynb
-```
-
-Crée les CSV, prépare la base et alimente PostgreSQL.
-
-```text
-01_train_churn_catboost.ipynb
-```
-
-Charge les données, analyse le drift et le leakage, entraîne CatBoost, évalue le modèle, log dans MLflow et sauvegarde les prédictions.
-
-```text
-02_churn_drift_dashboard.ipynb
-```
-
-Étudie le drift entre train, validation, test et backtest.
-
-```text
-03_retention_priority_queue.ipynb
-```
-
-Construit la liste des clients à traiter en priorité.
-
-```text
-04_retention_strategy_recommendations.ipynb
-```
-
-Produit des recommandations de rétention exploitables par le métier.
-
-```text
-05_agentic_retention_workflow.ipynb
-```
-
-Montre comment utiliser les agents RetainFlow depuis Python.
-
 ## Interface Agentique
 
 RetainFlow propose une interface web locale pour tester les agents.
@@ -159,6 +198,62 @@ Elle permet de :
 - afficher des graphiques Plotly ;
 - obtenir des brouillons de message ;
 - suivre les agents mobilisés dans le workflow.
+
+## Agents Créés
+
+La couche agentique de RetainFlow est organisée autour d'un `SupervisorAgent` qui reçoit une question métier, identifie l'intention, appelle les bons agents spécialisés, puis retourne une réponse structurée avec les données, les traces SQL, les explications ou les visuels nécessaires.
+
+Les agents créés dans le projet sont :
+
+| Agent | Rôle |
+| --- | --- |
+| `SupervisorAgent` | Route les questions vers les agents adaptés et compose la réponse finale. |
+| `SQLAgent` | Traduit les questions courantes en requêtes SQL contrôlées et interroge PostgreSQL en lecture seule. |
+| `KPIAgent` | Calcule des indicateurs métier : churn rate, clients prioritaires par région/agence, actions recommandées. |
+| `RetentionAdvisorAgent` | Récupère les clients les plus urgents à contacter et les recommandations de rétention associées. |
+| `CustomerProfileAgent` | Assemble le profil 360 d'un client précis avec contexte contrat, risque, priorité et recommandation. |
+| `ExplainabilityAgent` | Lit les artefacts SHAP pour expliquer les facteurs globaux qui influencent le modèle de churn. |
+| `StrategyRAGAgent` | Recherche dans les documents marketing internes pour proposer des leviers de rétention adaptés. |
+| `DataVisualizationAgent` | Transforme les résultats SQL ou KPI en graphiques Plotly exploitables dans l'interface. |
+| `EmailDraftingAgent` | Génère un brouillon d'email ou de message conseiller à partir d'une recommandation de rétention. |
+
+Tous les agents retournent un objet commun `AgentResponse`, ce qui permet à l'API FastAPI et au frontend de manipuler de la même façon une table SQL, un graphique Plotly, une réponse textuelle, une explication SHAP ou un brouillon d'email.
+
+## Corrective RAG
+
+RetainFlow utilise un RAG local sur le corpus `data/docs/strategy_marketing`. Le retriever commence par rechercher les documents les plus proches de la question utilisateur, puis applique une logique corrective si les résultats sont faibles.
+
+Le workflow est le suivant :
+
+1. recherche initiale avec TF-IDF ;
+2. évaluation du score de pertinence ;
+3. enrichissement de la requête avec du vocabulaire assurance-rétention si le score est insuffisant ;
+4. seconde recherche sur la requête corrigée ;
+5. retour des documents avec les métadonnées `retrieval_status`, `corrected`, `original_query` et `corrected_query`.
+
+Le corpus contient des fiches métier structurées pour plusieurs situations de churn : sensibilité prix, insatisfaction service, incidents de paiement, renouvellement proche, réengagement digital, sinistre récent et client haute valeur.
+
+## Configuration LLM Et APIs
+
+RetainFlow charge automatiquement les variables présentes dans `.env`. Le supervisor peut utiliser un LLM pour classifier l'intention d'une question métier avant d'appeler les agents spécialisés.
+
+Variables principales :
+
+```text
+RETAINFLOW_LLM_ENABLED=true
+LLM_PROVIDER=groq
+LLM_MODEL=llama-3.3-70b-versatile
+GROQ_API_KEY=...
+```
+
+Le LLM ne remplace pas les guardrails du projet : il choisit le workflow à lancer, mais les requêtes SQL passent toujours par `SQLTool`, les KPI par `KPITool`, les recommandations par `RetentionTool`, et les visuels par `VisualizationTool`.
+
+Services optionnels prévus dans `.env.example` :
+
+- `OPENAI_API_KEY` si vous voulez utiliser OpenAI à la place de Groq ;
+- `GOOGLE_API_KEY` et `HUGGINGFACE_API_KEY` pour de futurs embeddings ou rerankers ;
+- `PINECONE_API_KEY` pour remplacer plus tard le RAG local TF-IDF par un index vectoriel ;
+- `LANGFUSE_*` pour ajouter de l'observabilité lorsque l'intégration sera activée.
 
 ## Lancer Le Projet
 
@@ -233,32 +328,3 @@ La configuration se trouve dans :
 ```text
 config/churn_model.yml
 ```
-
-## Documentation
-
-Les documents principaux sont :
-
-```text
-docs/01_architecture_data_model.md
-docs/02_etat_de_l_art_retainflow.md
-docs/03_agentic_architecture_retainflow.md
-docs/04_fonctionnement_agents_retainflow.md
-docs/05_analyse_integration_axa_chat_app.md
-```
-
-## État Actuel
-
-Le projet dispose aujourd'hui :
-
-- d'une base PostgreSQL locale ;
-- d'un pipeline data science structuré ;
-- d'un modèle CatBoost ;
-- d'une analyse du drift et du leakage ;
-- d'une couche SHAP ;
-- d'une logique de priorisation rétention ;
-- d'un corpus RAG marketing ;
-- d'agents Python ;
-- d'une API FastAPI ;
-- d'une interface web locale.
-
-RetainFlow est donc une base solide pour construire progressivement un assistant métier de rétention client, capable de combiner données, modèle, explications et recommandations.

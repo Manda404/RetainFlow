@@ -45,7 +45,7 @@ class AgentAPIService:
         result = self.sql_tool.query(sql, limit=limit)
         response = AgentResponse(
             agent_name="SQLTool",
-            answer=f"Requete executee avec {result.row_count} lignes retournees.",
+            answer=f"Query executed with {result.row_count} returned rows.",
             data=result.dataframe,
             metadata={"sql": result.sql, "row_count": result.row_count, "truncated": result.truncated},
         )
@@ -102,11 +102,16 @@ def _json_ready(value: Any) -> Any:
         return value.isoformat()
     if isinstance(value, Decimal):
         return float(value)
+    if hasattr(value, "tolist"):
+        return _json_ready(value.tolist())
     try:
         if pd.isna(value):
             return None
     except (TypeError, ValueError):
         pass
     if hasattr(value, "item"):
-        return _json_ready(value.item())
+        try:
+            return _json_ready(value.item())
+        except ValueError:
+            return _json_ready(value.tolist()) if hasattr(value, "tolist") else str(value)
     return value
