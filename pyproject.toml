@@ -23,6 +23,9 @@ dependencies = [
     "pydantic-settings>=2.7.1,<3.0.0",
     "python-dotenv>=1.0.1,<2.0.0",
     "pyyaml>=6.0.2,<7.0.0",
+    "plotly>=7.0.0,<8.0.0",
+    "fastapi>=0.141.1,<1.0.0",
+    "uvicorn[standard]>=0.52.4,<1.0.0",
 ]
 
 [tool.poetry]
@@ -30,7 +33,11 @@ packages = [{ include = "retainflow", from = "src" }]
 
 [project.scripts]
 retainflow-build-data = "retainflow.pipelines.build_dataset:main"
+retainflow-drift-dashboard = "retainflow.pipelines.drift_dashboard:main"
 retainflow-train-churn = "retainflow.pipelines.train_churn:main"
+retainflow-build-retention-queue = "retainflow.pipelines.build_retention_queue:main"
+retainflow-build-retention-recommendations = "retainflow.pipelines.build_retention_recommendations:main"
+retainflow-api = "retainflow.api.app:main"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"

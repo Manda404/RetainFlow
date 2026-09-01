@@ -15,10 +15,16 @@ from catboost import CatBoostClassifier, Pool
 from retainflow.config import PROJECT_ROOT, ChurnModelConfig, load_churn_model_config
 from retainflow.data.dataset import ChurnDatasetLoader
 from retainflow.data.splitting import TemporalDatasetSplitter
-from retainflow.evaluation.metrics import BinaryClassifierEvaluator, ConfusionMatrixReporter
+from retainflow.evaluation.leakage import DataLeakageAuditor
+from retainflow.evaluation.metrics import (
+    BinaryClassifierEvaluator,
+    ConfusionMatrixReporter,
+    ThresholdTradeoffAnalyzer,
+)
 from retainflow.evaluation.visualization import ClassDistributionPlotter
 from retainflow.features.engineering import ChurnFeatureEngineer
 from retainflow.features.preprocessing import FEATURE_COLUMNS, ChurnPreprocessor
+from retainflow.features.selection import DriftFeatureSelector
 from retainflow.logging import get_logger
 from retainflow.models.catboost_churn import (
     ChurnModelTrainer,
@@ -107,7 +113,11 @@ def log_mlflow_provenance() -> None:
             mlflow.log_artifact(str(path), artifact_path="environment")
 
 
-def log_mlflow_dataset(dataset: pd.DataFrame, config: ChurnModelConfig) -> Any:
+def log_mlflow_dataset(
+    dataset: pd.DataFrame,
+    config: ChurnModelConfig,
+    feature_columns: list[str] | None = None,
+) -> Any:
     import mlflow
 
     with warnings.catch_warnings():
@@ -125,7 +135,7 @@ def log_mlflow_dataset(dataset: pd.DataFrame, config: ChurnModelConfig) -> Any:
             "label_table": config.label_fqn,
             "prediction_table": config.prediction_fqn,
             "dataset_rows": len(dataset),
-            "dataset_features": len(FEATURE_COLUMNS),
+            "dataset_features": len(feature_columns or FEATURE_COLUMNS),
             "global_churn_rate": float(dataset["churn_label"].mean()),
         }
     )
@@ -214,13 +224,40 @@ def train_churn_model(config: ChurnModelConfig) -> dict[str, Any]:
     import mlflow.catboost
 
     loader = ChurnDatasetLoader(config)
-    feature_engineer = ChurnFeatureEngineer()
-    preprocessor = ChurnPreprocessor()
-    splitter = TemporalDatasetSplitter()
 
     raw_dataset = loader.load()
+    drift_selector = DriftFeatureSelector.from_csv(config.drift_report_path)
+    feature_selection = drift_selector.build_selection(raw_dataset)
+    drift_selector.save_selection(feature_selection, config.drift_feature_exclusion_path)
+    raw_dataset = drift_selector.drop_raw_columns(raw_dataset, feature_selection)
 
+    feature_engineer = ChurnFeatureEngineer(
+        excluded_features=feature_selection.excluded_engineered_features
+    )
     feature_dataset = feature_engineer.transform(raw_dataset)
+    selected_numeric_features = [
+        feature
+        for feature in feature_selection.selected_numeric_features
+        if feature in feature_dataset.columns
+    ]
+    selected_categorical_features = [
+        feature
+        for feature in feature_selection.selected_categorical_features
+        if feature in feature_dataset.columns
+    ]
+    selected_feature_columns = selected_numeric_features + selected_categorical_features
+    leakage_report = DataLeakageAuditor().assert_no_critical_leakage(
+        feature_dataset,
+        feature_columns=selected_feature_columns,
+    )
+    config.leakage_report_path.parent.mkdir(parents=True, exist_ok=True)
+    leakage_report.to_csv(config.leakage_report_path, index=False)
+    preprocessor = ChurnPreprocessor(
+        numeric_features=selected_numeric_features,
+        categorical_features=selected_categorical_features,
+    )
+    splitter = TemporalDatasetSplitter(feature_columns=selected_feature_columns)
+
     raw_splits = splitter.split(feature_dataset)
     preprocessor.fit(raw_splits["train"].data)
     dataset = pd.concat(
@@ -245,6 +282,13 @@ def train_churn_model(config: ChurnModelConfig) -> dict[str, Any]:
         iterations=config.iterations,
         learning_rate=config.learning_rate,
         depth=config.depth,
+        l2_leaf_reg=config.l2_leaf_reg,
+        random_strength=config.random_strength,
+        bagging_temperature=config.bagging_temperature,
+        rsm=config.rsm,
+        min_data_in_leaf=config.min_data_in_leaf,
+        od_type="Iter",
+        od_wait=config.early_stopping_rounds,
         loss_function="Logloss",
         eval_metric="AUC",
         random_seed=config.random_seed,
@@ -252,7 +296,12 @@ def train_churn_model(config: ChurnModelConfig) -> dict[str, Any]:
         allow_writing_files=False,
     )
     evaluator = BinaryClassifierEvaluator(threshold=config.prediction_threshold)
-    trainer = ChurnModelTrainer(config=config, model=model, evaluator=evaluator)
+    trainer = ChurnModelTrainer(
+        config=config,
+        model=model,
+        evaluator=evaluator,
+        feature_names=selected_feature_columns,
+    )
 
     tracking_uri = configure_mlflow(config)
 
@@ -269,25 +318,35 @@ def train_churn_model(config: ChurnModelConfig) -> dict[str, Any]:
         log_system_metrics=config.mlflow_log_system_metrics,
     ) as run:
         logger.info("MLflow run started: %s", run.info.run_id)
-        log_mlflow_dataset(dataset, config)
+        log_mlflow_dataset(dataset, config, feature_columns=selected_feature_columns)
         log_mlflow_provenance()
+        mlflow.log_artifact(str(config.drift_feature_exclusion_path), artifact_path="features")
+        mlflow.log_artifact(str(config.leakage_report_path), artifact_path="data_quality")
         mlflow.log_params(
             {
                 "model_type": "CatBoostClassifier",
                 "iterations": config.iterations,
                 "learning_rate": config.learning_rate,
                 "depth": config.depth,
+                "l2_leaf_reg": config.l2_leaf_reg,
+                "random_strength": config.random_strength,
+                "bagging_temperature": config.bagging_temperature,
+                "rsm": config.rsm,
+                "min_data_in_leaf": config.min_data_in_leaf,
+                "early_stopping_rounds": config.early_stopping_rounds,
                 "prediction_threshold": config.prediction_threshold,
                 "random_seed": config.random_seed,
+                "removed_high_drift_features": len(feature_selection.features_to_remove),
+                "selected_model_features": len(selected_feature_columns),
                 "shap_version": shap_version(),
             }
         )
         mlflow.log_table(
             pd.DataFrame(
                 {
-                    "feature": FEATURE_COLUMNS,
+                    "feature": selected_feature_columns,
                     "is_categorical": [
-                        index in cat_features for index in range(len(FEATURE_COLUMNS))
+                        feature in selected_categorical_features for feature in selected_feature_columns
                     ],
                 }
             ),
@@ -305,10 +364,13 @@ def train_churn_model(config: ChurnModelConfig) -> dict[str, Any]:
         mlflow.log_figure(class_distribution_ax.figure, "figures/class_distribution_by_split.png")
 
         training_curve = trainer.training_curve()
+        training_diagnostics = trainer.training_diagnostics()
         training_curve_path = config.training_curve_path
         training_curve_path.parent.mkdir(parents=True, exist_ok=True)
         training_curve.to_csv(training_curve_path, index=False)
         mlflow.log_table(training_curve, "tables/catboost_training_curve.json")
+        for metric_name, value in training_diagnostics.items():
+            mlflow.log_metric(metric_name, value)
 
         metrics_by_split, probabilities_by_split = trainer.evaluate(
             pools_by_split={
@@ -352,6 +414,22 @@ def train_churn_model(config: ChurnModelConfig) -> dict[str, Any]:
         mlflow.log_table(confusion_matrix_frame, "tables/confusion_matrix_by_split.json")
         mlflow.log_figure(confusion_matrix_figure, "figures/confusion_matrix_by_split.png")
 
+        threshold_analyzer = ThresholdTradeoffAnalyzer(beta=2.0, size=(15, 6))
+        threshold_grid = threshold_analyzer.grid_frame(test_y, probabilities_by_split["test"])
+        best_threshold = threshold_analyzer.best_threshold(threshold_grid)
+        threshold_grid_path = config.threshold_grid_table_path
+        threshold_plot_path = config.threshold_grid_plot_path
+        threshold_grid_path.parent.mkdir(parents=True, exist_ok=True)
+        threshold_grid.to_csv(threshold_grid_path, index=False)
+        threshold_figure = threshold_analyzer.plot(
+            threshold_grid,
+            best_threshold=best_threshold,
+            path=threshold_plot_path,
+        )
+        mlflow.log_table(threshold_grid, "tables/threshold_tradeoff_grid.json")
+        mlflow.log_figure(threshold_figure, "figures/threshold_tradeoff.png")
+        mlflow.log_metric("best_threshold_f2_test", best_threshold)
+
         mlflow.log_metric("train_rows", len(train_x))
         mlflow.log_metric("validation_rows", len(valid_x))
         mlflow.log_metric("test_rows", len(test_x))
@@ -384,11 +462,17 @@ def train_churn_model(config: ChurnModelConfig) -> dict[str, Any]:
         return {
             "run_id": run.info.run_id,
             "metrics": metrics_by_split,
+            "training_diagnostics": training_diagnostics,
             "tracking_uri": tracking_uri,
+            "drift_feature_exclusion_path": str(config.drift_feature_exclusion_path),
+            "leakage_report_path": str(config.leakage_report_path),
             "training_curve_path": str(training_curve_path),
             "class_distribution_plot_path": str(class_distribution_plot_path),
             "confusion_matrix_table_path": str(confusion_matrix_table_path),
             "confusion_matrix_plot_path": str(confusion_matrix_plot_path),
+            "threshold_grid_path": str(threshold_grid_path),
+            "threshold_plot_path": str(threshold_plot_path),
+            "best_threshold_f2_test": best_threshold,
             "shap_report_path": str(shap_report_path),
             "shap_plot_path": str(shap_plot_path),
             "shap_top_features": shap_summary.head(10).to_dict(orient="records"),

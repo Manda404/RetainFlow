@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RetainFlow Retention Copilot</title>
+    <link rel="stylesheet" href="./style.css" />
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand-card">
+          <div class="brand-logo">RF</div>
+          <div>
+            <h1>Retention Copilot</h1>
+            <p>Assistant IA conseiller assurance</p>
+          </div>
+        </div>
+
+        <section class="sidebar-section">
+          <div class="section-title">Mode de travail</div>
+          <div class="mode-card active">
+            <span>AI</span>
+            <div>
+              <strong>Agent métier</strong>
+              <p>SQL + churn + SHAP + RAG + recommandation</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="sidebar-section">
+          <div class="section-title">Parcours agent</div>
+          <div id="pipeline" class="pipeline">
+            <div class="pipeline-step" data-step="SupervisorAgent"><span>1</span> Supervisor</div>
+            <div class="pipeline-step" data-step="SQLAgent"><span>2</span> SQL / KPI</div>
+            <div class="pipeline-step" data-step="RetentionAdvisorAgent"><span>3</span> Priorisation</div>
+            <div class="pipeline-step" data-step="ExplainabilityAgent"><span>4</span> SHAP</div>
+            <div class="pipeline-step" data-step="StrategyRAGAgent"><span>5</span> Stratégie</div>
+            <div class="pipeline-step" data-step="DataVisualizationAgent"><span>6</span> Visualisation</div>
+          </div>
+        </section>
+
+        <section class="sidebar-section">
+          <div class="section-title">Questions rapides</div>
+          <div class="quick-list">
+            <button data-message="Quels sont les 5 clients a contacter en urgence et pourquoi ?">
+              Top 5 clients urgents
+              <small>Priorisation conseiller</small>
+            </button>
+            <button data-message="Visualise les clients prioritaires par region">
+              Visualiser par région
+              <small>Carte d'action commerciale</small>
+            </button>
+            <button data-message="Quelle strategie marketing pour un client sensible au prix ?">
+              Stratégie prix
+              <small>Recherche RAG marketing</small>
+            </button>
+            <button data-message="Redige un email pour le premier client prioritaire">
+              Brouillon email
+              <small>Message à valider</small>
+            </button>
+          </div>
+        </section>
+
+        <footer>
+          <span id="apiStatusDot" class="status-dot"></span>
+          <span id="apiStatusText">Connexion API...</span>
+        </footer>
+      </aside>
+
+      <main class="workspace">
+        <header class="hero">
+          <div>
+            <div class="eyebrow">Plateforme agentique retention</div>
+            <h2>Détecter les clients fragiles, comprendre le risque, proposer la bonne action.</h2>
+            <p>
+              RetainFlow transforme les prédictions churn, les signaux client et les documents
+              de stratégie en décisions lisibles pour les équipes métier.
+            </p>
+          </div>
+          <div class="hero-score">
+            <span>Décision</span>
+            <strong id="heroDecision">Prête</strong>
+            <small>API locale RetainFlow</small>
+          </div>
+        </header>
+
+        <section class="quick-actions">
+          <article class="quick-card" data-message="Quels sont les 5 clients a contacter en urgence et pourquoi ?">
+            <span>01</span>
+            <strong>Prioriser les contacts</strong>
+            <p>Identifier les clients à traiter aujourd'hui avec justification.</p>
+          </article>
+          <article class="quick-card" data-message="Pourquoi le client CUST_000123 risque de churner ?">
+            <span>02</span>
+            <strong>Expliquer un client</strong>
+            <p>Lire les facteurs de risque et les éléments SHAP disponibles.</p>
+          </article>
+          <article class="quick-card" data-message="Visualise les clients prioritaires par region">
+            <span>03</span>
+            <strong>Créer un visuel</strong>
+            <p>Produire un graphique Plotly à partir des résultats SQL.</p>
+          </article>
+          <article class="quick-card" data-message="Quelle strategie marketing pour un client sensible au prix ?">
+            <span>04</span>
+            <strong>Consulter la stratégie</strong>
+            <p>Rechercher les leviers marketing dans le corpus RAG.</p>
+          </article>
+        </section>
+
+        <section class="content-grid">
+          <article class="chat-panel">
+            <div class="panel-title">
+              <div>
+                <h3>Conversation conseiller</h3>
+                <p>Pose une question métier. L'agent route vers SQL, KPI, RAG ou visualisation.</p>
+              </div>
+              <button id="clearBtn" type="button">Réinitialiser</button>
+            </div>
+
+            <div id="messages" class="messages"></div>
+
+            <form id="chatForm" class="composer">
+              <input
+                id="userInput"
+                type="text"
+                autocomplete="off"
+                placeholder="Ex : Quels clients dois-je contacter en priorité cette semaine ?"
+                required
+              />
+              <label>
+                Limite
+                <input id="limitInput" type="number" min="1" max="200" value="5" />
+              </label>
+              <button id="sendBtn" type="submit">
+                <span>Envoyer</span>
+                <b>↵</b>
+              </button>
+            </form>
+          </article>
+
+          <aside class="insight-panel">
+            <div class="panel-title">
+              <div>
+                <h3>Résultat agent</h3>
+                <p id="activeAgent">SupervisorAgent</p>
+              </div>
+              <span id="analysisState">En attente</span>
+            </div>
+
+            <div class="risk-ring">
+              <svg viewBox="0 0 120 120">
+                <circle class="ring-bg" cx="60" cy="60" r="50"></circle>
+                <circle id="riskCircle" class="ring-progress" cx="60" cy="60" r="50"></circle>
+              </svg>
+              <div>
+                <strong id="scoreValue">--</strong>
+                <span id="riskLevel">Aucune analyse</span>
+              </div>
+            </div>
+
+            <div class="kpi-grid">
+              <div><span>Réponse</span><strong id="responseType">--</strong></div>
+              <div><span>Lignes</span><strong id="rowCount">0</strong></div>
+              <div><span>Action</span><strong id="nextAction">À définir</strong></div>
+              <div><span>Confiance</span><strong id="confidenceLevel">--</strong></div>
+            </div>
+
+            <div class="agent-card">
+              <h4>Synthèse décision</h4>
+              <p id="summaryBox">Aucune analyse lancée.</p>
+            </div>
+
+            <div class="agent-card">
+              <div class="card-row">
+                <h4>Clients prioritaires</h4>
+                <small id="priorityCount">0 client</small>
+              </div>
+              <div id="priorityList" class="priority-list">
+                <p>Aucune priorité chargée.</p>
+              </div>
+            </div>
+          </aside>
+        </section>
+
+        <section class="result-panel">
+          <div class="panel-title">
+            <div>
+              <h3>Exploration des résultats</h3>
+              <p>Table, graphique Plotly et traces SQL/RAG retournées par les agents.</p>
+            </div>
+            <div class="tabs">
+              <button class="tab active" type="button" data-tab="tablePanel">Table</button>
+              <button class="tab" type="button" data-tab="plotPanel">Graphique</button>
+              <button class="tab" type="button" data-tab="metadataPanel">SQL / Sources</button>
+            </div>
+          </div>
+
+          <div id="tablePanel" class="tab-panel active">
+            <div id="tableOutput" class="table-wrap">Aucune table à afficher.</div>
+          </div>
+          <div id="plotPanel" class="tab-panel">
+            <div id="plotOutput" class="plot-wrap">Aucun graphique pour le moment.</div>
+          </div>
+          <div id="metadataPanel" class="tab-panel">
+            <pre id="metadataOutput">En attente.</pre>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

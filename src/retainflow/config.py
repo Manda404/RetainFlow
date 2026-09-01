@@ -17,6 +17,8 @@ class ChurnModelConfig:
     feature_table: str
     label_table: str
     prediction_table: str
+    retention_queue_table: str
+    retention_recommendation_table: str
     experiment_name: str
     registered_model_name: str
     register_model: bool
@@ -24,6 +26,12 @@ class ChurnModelConfig:
     iterations: int
     learning_rate: float
     depth: int
+    l2_leaf_reg: float
+    random_strength: float
+    bagging_temperature: float
+    rsm: float
+    min_data_in_leaf: int
+    early_stopping_rounds: int
     postgres_dsn: str
     schema_name: str
     random_seed: int
@@ -39,6 +47,15 @@ class ChurnModelConfig:
     training_curve_path: Path
     confusion_matrix_table_path: Path
     confusion_matrix_plot_path: Path
+    threshold_grid_table_path: Path
+    threshold_grid_plot_path: Path
+    retention_queue_path: Path
+    retention_recommendation_path: Path
+    drift_report_path: Path
+    drift_summary_path: Path
+    drift_dashboard_path: Path
+    drift_feature_exclusion_path: Path
+    leakage_report_path: Path
     shap_summary_path: Path
     shap_agent_report_path: Path
     shap_feature_importance_plot_path: Path
@@ -54,6 +71,14 @@ class ChurnModelConfig:
     @property
     def prediction_fqn(self) -> str:
         return f"{self.schema_name}.{self.prediction_table}"
+
+    @property
+    def retention_queue_fqn(self) -> str:
+        return f"{self.schema_name}.{self.retention_queue_table}"
+
+    @property
+    def retention_recommendation_fqn(self) -> str:
+        return f"{self.schema_name}.{self.retention_recommendation_table}"
 
     @property
     def catalog(self) -> str:
@@ -97,6 +122,10 @@ def load_churn_model_config(path: str | Path) -> ChurnModelConfig:
         feature_table=str(raw.get("feature_table", "customer_360_snapshot")),
         label_table=str(raw.get("label_table", "churn_label")),
         prediction_table=str(raw.get("prediction_table", "churn_prediction")),
+        retention_queue_table=str(raw.get("retention_queue_table", "retention_priority_queue")),
+        retention_recommendation_table=str(
+            raw.get("retention_recommendation_table", "retention_recommendation")
+        ),
         experiment_name=str(raw.get("experiment_name", "RetainFlow/churn_model")),
         registered_model_name=str(raw.get("registered_model_name", "retainflow_churn_catboost")),
         register_model=bool(raw.get("register_model", False)),
@@ -104,6 +133,12 @@ def load_churn_model_config(path: str | Path) -> ChurnModelConfig:
         iterations=int(raw.get("iterations", 300)),
         learning_rate=float(raw.get("learning_rate", 0.05)),
         depth=int(raw.get("depth", 6)),
+        l2_leaf_reg=float(raw.get("l2_leaf_reg", 3.0)),
+        random_strength=float(raw.get("random_strength", 1.0)),
+        bagging_temperature=float(raw.get("bagging_temperature", 1.0)),
+        rsm=float(raw.get("rsm", 1.0)),
+        min_data_in_leaf=int(raw.get("min_data_in_leaf", 1)),
+        early_stopping_rounds=int(raw.get("early_stopping_rounds", 50)),
         postgres_dsn=os.getenv(dsn_env, default_dsn),
         schema_name=schema_name,
         random_seed=int(raw.get("random_seed", 42)),
@@ -137,6 +172,39 @@ def load_churn_model_config(path: str | Path) -> ChurnModelConfig:
                 "confusion_matrix_plot_path",
                 "reports/figures/confusion_matrix_by_split.png",
             )
+        ),
+        threshold_grid_table_path=resolve_project_path(
+            artifacts.get("threshold_grid_table_path", "reports/tables/threshold_tradeoff_grid.csv")
+        ),
+        threshold_grid_plot_path=resolve_project_path(
+            artifacts.get("threshold_grid_plot_path", "reports/figures/threshold_tradeoff.png")
+        ),
+        retention_queue_path=resolve_project_path(
+            artifacts.get("retention_queue_path", "reports/tables/retention_priority_queue.csv")
+        ),
+        retention_recommendation_path=resolve_project_path(
+            artifacts.get(
+                "retention_recommendation_path",
+                "reports/tables/retention_recommendation.csv",
+            )
+        ),
+        drift_report_path=resolve_project_path(
+            artifacts.get("drift_report_path", "reports/tables/churn_drift_report.csv")
+        ),
+        drift_summary_path=resolve_project_path(
+            artifacts.get("drift_summary_path", "reports/tables/churn_drift_summary.json")
+        ),
+        drift_dashboard_path=resolve_project_path(
+            artifacts.get("drift_dashboard_path", "reports/drift/churn_drift_dashboard.html")
+        ),
+        drift_feature_exclusion_path=resolve_project_path(
+            artifacts.get(
+                "drift_feature_exclusion_path",
+                "reports/tables/drift_feature_exclusions.json",
+            )
+        ),
+        leakage_report_path=resolve_project_path(
+            artifacts.get("leakage_report_path", "reports/tables/data_leakage_report.csv")
         ),
         shap_summary_path=resolve_project_path(
             artifacts.get("shap_summary_path", "reports/tables/shap_summary.csv")

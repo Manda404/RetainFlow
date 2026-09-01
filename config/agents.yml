@@ -1,0 +1,49 @@
+project: RetainFlow
+environment: local
+
+llm:
+  provider_env: LLM_PROVIDER
+  model_env: LLM_MODEL
+  api_key_env: OPENAI_API_KEY
+  enabled: false
+
+database:
+  dsn_env: RETAINFLOW_POSTGRES_DSN
+  read_only: true
+  default_limit: 200
+
+model:
+  name_env: RETAINFLOW_MODEL_NAME
+  api_url_env: RETAINFLOW_MODEL_API_URL
+  use_persisted_predictions_first: true
+
+rag:
+  docs_dir_env: RETAINFLOW_RAG_DOCS_DIR
+  default_docs_dir: data/docs/strategy_marketing
+  top_k: 5
+
+visualization:
+  default_engine: plotly_express
+  fallback_engines:
+    - seaborn
+    - matplotlib
+  default_width: 1100
+  default_height: 520
+
+guardrails:
+  sql_allowed_statements:
+    - SELECT
+    - WITH
+  sql_blocked_keywords:
+    - ALTER
+    - CREATE
+    - DELETE
+    - DROP
+    - INSERT
+    - MERGE
+    - TRUNCATE
+    - UPDATE
+  require_human_email_approval: true
+  include_sql_source_in_answers: true
+  include_mlflow_run_id_in_model_answers: true
+  include_shap_drivers_in_prediction_answers: true

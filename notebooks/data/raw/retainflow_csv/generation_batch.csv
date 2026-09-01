@@ -1,2 +1,0 @@
-batch_id,run_started_at,run_finished_at,generation_mode,seed,n_customers,history_start_date,history_end_date,status,error_message,created_by
-BATCH_CSV_20260830205517,2026-08-30T20:55:17.901352+00:00,2026-08-30T20:55:17.901353+00:00,reset,42,10000,2020-01-01,2026-06-30,SUCCEEDED,,csv_generator

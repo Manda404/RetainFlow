@@ -1,0 +1,41 @@
+"""Agent dedicated to KPI analysis."""
+
+from __future__ import annotations
+
+from retainflow.agents.base import AgentResponse
+from retainflow.config import ChurnModelConfig
+from retainflow.tools.kpi_tool import KPITool
+
+
+class KPIAgent:
+    """Choose and compute RetainFlow KPIs from a business question."""
+
+    def __init__(self, config: ChurnModelConfig, kpi_tool: KPITool | None = None) -> None:
+        self.config = config
+        self.kpi_tool = kpi_tool or KPITool(config)
+
+    def answer(self, question: str) -> AgentResponse:
+        """Return a KPI table and a short interpretation."""
+        lowered = question.lower()
+        if "split" in lowered or "churn rate" in lowered or "taux de churn" in lowered:
+            result = self.kpi_tool.churn_rate_by_split()
+            label = "taux de churn par split"
+        elif "agence" in lowered and "semaine" in lowered:
+            result = self.kpi_tool.weekly_contact_rate_by_agency()
+            label = "contacts de la semaine par agence"
+        elif "agence" in lowered:
+            result = self.kpi_tool.priority_clients_by_agency()
+            label = "clients prioritaires par agence"
+        elif "action" in lowered or "recommand" in lowered:
+            result = self.kpi_tool.recommended_actions_distribution()
+            label = "distribution des actions recommandees"
+        else:
+            result = self.kpi_tool.priority_clients_by_region()
+            label = "clients prioritaires par region"
+
+        return AgentResponse(
+            agent_name="KPIAgent",
+            answer=f"KPI calcule: {label}. {result.row_count} lignes retournees.",
+            data=result.dataframe,
+            metadata={"sql": result.sql, "kpi": label, "row_count": result.row_count},
+        )

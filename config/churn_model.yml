@@ -1,13 +1,21 @@
 feature_table: customer_360_snapshot
 label_table: churn_label
 prediction_table: churn_prediction
+retention_queue_table: retention_priority_queue
+retention_recommendation_table: retention_recommendation
 experiment_name: RetainFlow/churn_model
 registered_model_name: retainflow_churn_catboost
 register_model: false
-prediction_threshold: 0.2
+prediction_threshold: 0.14
 iterations: 500
-learning_rate: 0.01
-depth: 6
+learning_rate: 0.05
+depth: 4
+l2_leaf_reg: 10.0
+random_strength: 2.0
+bagging_temperature: 1.0
+rsm: 0.8
+min_data_in_leaf: 50
+early_stopping_rounds: 50
 random_seed: 42
 postgres:
   dsn_env: RETAINFLOW_POSTGRES_DSN
@@ -28,6 +36,15 @@ artifacts:
   training_curve_path: reports/tables/catboost_training_curve.csv
   confusion_matrix_table_path: reports/tables/confusion_matrix_by_split.csv
   confusion_matrix_plot_path: reports/figures/confusion_matrix_by_split.png
+  threshold_grid_table_path: reports/tables/threshold_tradeoff_grid.csv
+  threshold_grid_plot_path: reports/figures/threshold_tradeoff.png
+  retention_queue_path: reports/tables/retention_priority_queue.csv
+  retention_recommendation_path: reports/tables/retention_recommendation.csv
+  drift_report_path: reports/tables/churn_drift_report.csv
+  drift_summary_path: reports/tables/churn_drift_summary.json
+  drift_dashboard_path: reports/drift/churn_drift_dashboard.html
+  drift_feature_exclusion_path: reports/tables/drift_feature_exclusions.json
+  leakage_report_path: reports/tables/data_leakage_report.csv
   shap_summary_path: reports/tables/shap_summary.csv
   shap_agent_report_path: reports/tables/shap_agent_report.json
   shap_feature_importance_plot_path: reports/figures/shap_feature_importance.png

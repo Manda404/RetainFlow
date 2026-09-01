@@ -10,6 +10,7 @@ from retainflow.features.preprocessing import (
     TARGET_COLUMN,
     ChurnPreprocessor,
 )
+from retainflow.features.selection import DriftFeatureSelection, DriftFeatureSelector
 
 __all__ = [
     "CATEGORICAL_FEATURES",
@@ -21,4 +22,6 @@ __all__ = [
     "TARGET_COLUMN",
     "ChurnFeatureEngineer",
     "ChurnPreprocessor",
+    "DriftFeatureSelection",
+    "DriftFeatureSelector",
 ]

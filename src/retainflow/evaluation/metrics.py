@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from sklearn.metrics import (
     accuracy_score,
@@ -186,3 +187,107 @@ def evaluate_binary_classifier(
     threshold: float,
 ) -> dict[str, float]:
     return BinaryClassifierEvaluator(threshold).evaluate(y_true, probabilities)
+
+
+class ThresholdTradeoffAnalyzer:
+    """Analyze the precision/recall trade-off across decision thresholds."""
+
+    def __init__(
+        self,
+        thresholds: list[float] | None = None,
+        beta: float = 2.0,
+        size: tuple[int, int] = (15, 6),
+        positive_label: str = "churn",
+    ) -> None:
+        self.thresholds = thresholds or np.round(np.arange(0.02, 0.42, 0.04), 3).tolist()
+        self.beta = beta
+        self.size = size
+        self.positive_label = positive_label
+
+    def grid_frame(
+        self,
+        y_true: pd.Series,
+        probabilities: list[float] | np.ndarray,
+    ) -> pd.DataFrame:
+        proba = np.asarray(probabilities)
+        rows = []
+        true_positive_rate = float(pd.Series(y_true).mean())
+        for threshold in self.thresholds:
+            predictions = (proba >= threshold).astype(int)
+            tn, fp, fn, tp = confusion_matrix(y_true, predictions, labels=[0, 1]).ravel()
+            precision = tp / (tp + fp) if (tp + fp) else 0.0
+            recall = tp / (tp + fn) if (tp + fn) else 0.0
+            f1 = 2 * precision * recall / (precision + recall) if (precision + recall) else 0.0
+            beta_squared = self.beta**2
+            fbeta = (
+                (1 + beta_squared) * precision * recall / (beta_squared * precision + recall)
+                if (precision + recall)
+                else 0.0
+            )
+            rows.append(
+                {
+                    "threshold": float(threshold),
+                    "true_non_churn": int(tn),
+                    "false_alarms": int(fp),
+                    f"{self.positive_label}_missed": int(fn),
+                    f"{self.positive_label}_detected": int(tp),
+                    "precision": round(float(precision), 3),
+                    "recall": round(float(recall), 3),
+                    "f1": round(float(f1), 3),
+                    f"f{self.beta:g}": round(float(fbeta), 3),
+                    "alert_rate": round(float(predictions.mean()), 3),
+                    "true_positive_rate": round(true_positive_rate, 3),
+                }
+            )
+        return pd.DataFrame(rows)
+
+    def best_threshold(self, grid: pd.DataFrame) -> float:
+        score_column = f"f{self.beta:g}"
+        best_row = grid.sort_values(
+            [score_column, "recall", "precision"],
+            ascending=[False, False, False],
+        ).iloc[0]
+        return float(best_row["threshold"])
+
+    def plot(
+        self,
+        grid: pd.DataFrame,
+        best_threshold: float | None = None,
+        path: str | Path | None = None,
+    ):
+        import matplotlib.pyplot as plt
+
+        active_best_threshold = best_threshold if best_threshold is not None else self.best_threshold(grid)
+        figure, ax = plt.subplots(figsize=self.size)
+        ax.plot(
+            grid["threshold"],
+            grid["recall"],
+            marker="o",
+            color="#C44E52",
+            label=f"Recall ({self.positive_label} detected)",
+        )
+        ax.plot(
+            grid["threshold"],
+            grid["precision"],
+            marker="s",
+            color="#4C72B0",
+            label="Precision (alerts that were real)",
+        )
+        ax.axvline(
+            active_best_threshold,
+            color="black",
+            ls="--",
+            label=f"tuned threshold = {active_best_threshold:.3f}",
+        )
+        ax.set_xlabel("Decision threshold")
+        ax.set_ylabel("Score")
+        ax.set_title("Precision/recall trade-off controlled by the decision threshold")
+        ax.set_ylim(0, 1.05)
+        ax.grid(axis="y", color="#E5E7EB", linewidth=0.8)
+        ax.legend()
+        plt.tight_layout()
+        if path is not None:
+            output_path = Path(path)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            figure.savefig(output_path, dpi=160, bbox_inches="tight")
+        return figure

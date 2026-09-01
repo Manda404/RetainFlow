@@ -2,7 +2,7 @@
 
 ## Decision
 
-La base operationnelle RetainFlow est maintenant PostgreSQL local. Databricks n'est plus utilise pour creer les tables ni alimenter les donnees de depart. Les anciens assets Databricks sont archives dans `legacy_databricks/`.
+La base operationnelle RetainFlow est maintenant PostgreSQL local. Databricks n'est plus utilise pour creer les tables ni alimenter les donnees de depart.
 
 ## Objectif Metier
 

@@ -6,6 +6,7 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.matplotlib-cache/
 .ipynb_checkpoints/
 .DS_Store
 .vscode
@@ -20,6 +21,7 @@ data/external/*
 /models/*
 reports/figures/*
 reports/tables/*
+reports/drift/*
 !data/raw/.gitkeep
 !data/interim/.gitkeep
 !data/processed/.gitkeep
@@ -27,3 +29,5 @@ reports/tables/*
 !/models/.gitkeep
 !reports/figures/.gitkeep
 !reports/tables/.gitkeep
+!reports/drift/.gitkeep
+.matplotlib-cache

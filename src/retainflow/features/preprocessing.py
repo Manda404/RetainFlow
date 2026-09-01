@@ -91,10 +91,14 @@ class ChurnPreprocessor:
     def fit(self, dataset: pd.DataFrame) -> ChurnPreprocessor:
         frame = dataset.copy()
         for column in self.numeric_features:
+            if column not in frame.columns:
+                raise KeyError(f"Missing numeric feature for preprocessing: {column}")
             values = pd.to_numeric(frame[column], errors="coerce")
             median = values.median()
             self.numeric_fill_values[column] = float(median) if pd.notna(median) else 0.0
         for column in self.categorical_features:
+            if column not in frame.columns:
+                raise KeyError(f"Missing categorical feature for preprocessing: {column}")
             values = frame[column].dropna().astype(str)
             self.categorical_fill_values[column] = values.mode().iloc[0] if not values.empty else "UNKNOWN"
         self.is_fitted = True

@@ -12,21 +12,17 @@ sql/postgres/00_schema.sql
 src/retainflow/generation/synthetic.py
 src/retainflow/data/csv_etl.py
 src/retainflow/pipelines/build_dataset.py
-notebooks/00_postgres_bootstrap_retainflow.py
+notebooks/00_postgres_bootstrap_retainflow.ipynb
 config/data_pipeline.yml
 src/retainflow/
 logs/retainflow.log
 ```
 
-## Ce Qui Est Archive
+## Ce Qui Est Supprime
 
-Les fichiers de creation/orchestration Databricks ont ete deplaces dans:
-
-```text
-legacy_databricks/
-```
-
-Ils ne sont plus le chemin recommande pour creer les tables ou generer les donnees.
+La pile Databricks historique n'est plus conservee dans l'architecture active du projet.
+Le chemin recommande est maintenant PostgreSQL local, notebooks explicites, modules Python
+dans `src/retainflow`, MLflow local centralise et agents RetainFlow.
 
 ## Donnees Creees
 
