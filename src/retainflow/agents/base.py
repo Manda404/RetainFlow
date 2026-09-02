@@ -14,3 +14,4 @@ class AgentResponse:
     answer: str
     data: Any | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
+    business_type: str = "text"

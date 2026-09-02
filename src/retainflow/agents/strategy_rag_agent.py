@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+from retainflow.agents.activity import activity_item
 from retainflow.agents.base import AgentResponse
 from retainflow.tools.rag_tool import StrategyRAGTool
 
@@ -40,6 +41,20 @@ class StrategyRAGAgent:
                 agent_name="StrategyRAGAgent",
                 answer=f"Dossier documentaire introuvable: {self.docs_dir}",
                 data=[],
+                metadata={
+                    "activity": [
+                        activity_item(
+                            id="step_1",
+                            agent="StrategyRAGAgent",
+                            tool="StrategyRAGTool",
+                            business_label="Retention Knowledge",
+                            status="failed",
+                            summary="Retention strategy document folder was not found.",
+                            error=f"Document folder not found: {self.docs_dir}",
+                        )
+                    ]
+                },
+                business_type="retention_strategy",
             )
 
         matches, retrieval_metadata = self.rag_tool.corrective_search(question, top_k=limit)
@@ -60,5 +75,30 @@ class StrategyRAGAgent:
             agent_name="StrategyRAGAgent",
             answer=answer,
             data=matches,
-            metadata={"docs_dir": str(self.docs_dir), "top_k": limit, **retrieval_metadata},
+            metadata={
+                "docs_dir": str(self.docs_dir),
+                "top_k": limit,
+                **retrieval_metadata,
+                "activity": [
+                    activity_item(
+                        id="step_1",
+                        agent="StrategyRAGAgent",
+                        tool="StrategyRAGTool",
+                        business_label="Retention Knowledge",
+                        status="completed",
+                        summary=f"Retrieved {len(matches)} retention strategy documents.",
+                        details={
+                            "documents": len(matches),
+                            "retrieval_status": retrieval_metadata.get("retrieval_status"),
+                            "corrected": retrieval_metadata.get("corrected"),
+                        },
+                        sources=matches[["document_id", "title", "path", "score"]].to_dict(
+                            orient="records"
+                        )
+                        if not matches.empty
+                        else None,
+                    )
+                ],
+            },
+            business_type="retention_strategy",
         )

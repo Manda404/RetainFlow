@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from retainflow.agents.activity import activity_item
 from retainflow.agents.base import AgentResponse
 from retainflow.config import ChurnModelConfig
 from retainflow.tools.customer_profile_tool import CustomerProfileTool
@@ -24,10 +25,30 @@ class CustomerProfileAgent:
         if result.dataframe.empty:
             answer = f"No profile found for customer {customer_id}."
         else:
-            answer = f"Customer profile loaded for {customer_id}: {result.row_count} rows found."
+            answer = f"Latest customer profile loaded for {customer_id}."
+        business_type = "customer_not_found" if result.dataframe.empty else "customer_profile"
         return AgentResponse(
             agent_name="CustomerProfileAgent",
             answer=answer,
             data=result.dataframe,
-            metadata={"sql": result.sql, "row_count": result.row_count},
+            metadata={
+                "sql": result.sql,
+                "row_count": result.row_count,
+                "activity": [
+                    activity_item(
+                        id="step_1",
+                        agent="CustomerProfileAgent",
+                        tool="CustomerProfileTool",
+                        business_label="Customer Data",
+                        status="completed",
+                        summary=(
+                            f"Customer profile retrieved for {customer_id}."
+                            if not result.dataframe.empty
+                            else f"Customer {customer_id} was not found."
+                        ),
+                        details={"rows": result.row_count, "sql": result.sql},
+                    )
+                ],
+            },
+            business_type=business_type,
         )

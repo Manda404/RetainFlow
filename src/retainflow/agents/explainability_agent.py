@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from retainflow.agents.activity import activity_item
 from retainflow.agents.base import AgentResponse
 from retainflow.config import ChurnModelConfig
 from retainflow.tools.explainability_tool import ExplainabilityTool
@@ -29,5 +30,29 @@ class ExplainabilityAgent:
             agent_name="ExplainabilityAgent",
             answer=answer,
             data=summary,
-            metadata={"artifact": str(self.config.shap_summary_path), "top_n": top_n},
+            metadata={
+                "artifact": str(self.config.shap_summary_path),
+                "top_n": top_n,
+                "scope": "global",
+                "activity": [
+                    activity_item(
+                        id="step_1",
+                        agent="ExplainabilityAgent",
+                        tool="ExplainabilityTool",
+                        business_label="Global Risk Explanation",
+                        status="completed",
+                        summary=(
+                            f"Loaded {len(drivers)} global SHAP drivers."
+                            if drivers
+                            else "No global SHAP artifact is available."
+                        ),
+                        details={
+                            "scope": "global",
+                            "drivers": len(drivers),
+                        },
+                        sources=[{"type": "artifact", "path": str(self.config.shap_summary_path)}],
+                    )
+                ],
+            },
+            business_type="risk_explanation",
         )

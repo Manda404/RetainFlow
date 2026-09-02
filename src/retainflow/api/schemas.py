@@ -7,6 +7,21 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field
 
 ResponseType = Literal["text", "table", "plotly", "email_draft", "records"]
+BusinessType = Literal[
+    "kpi",
+    "customer_ranking",
+    "customer_profile",
+    "customer_not_found",
+    "risk_explanation",
+    "retention_strategy",
+    "visualization",
+    "email_draft",
+    "data_table",
+    "data_count",
+    "data_query",
+    "text",
+    "combination",
+]
 
 
 class ChatRequest(BaseModel):
@@ -22,6 +37,7 @@ class ChatResponse(BaseModel):
     agent_name: str
     answer: str
     response_type: ResponseType
+    business_type: BusinessType = "text"
     data: Any | None = None
     figure: dict[str, Any] | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)

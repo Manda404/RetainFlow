@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from retainflow.agents.activity import activity_item
 from retainflow.agents.base import AgentResponse
 from retainflow.config import ChurnModelConfig
 from retainflow.tools.kpi_tool import KPITool
@@ -39,5 +40,21 @@ class KPIAgent:
             agent_name="KPIAgent",
             answer=f"KPI computed: {label}. {result.row_count} returned rows.",
             data=result.dataframe,
-            metadata={"sql": result.sql, "kpi": label, "row_count": result.row_count},
+            metadata={
+                "sql": result.sql,
+                "kpi": label,
+                "row_count": result.row_count,
+                "activity": [
+                    activity_item(
+                        id="step_1",
+                        agent="KPIAgent",
+                        tool="KPITool",
+                        business_label="Business KPI",
+                        status="completed",
+                        summary=f"Computed KPI: {label}.",
+                        details={"rows": result.row_count, "kpi": label, "sql": result.sql},
+                    )
+                ],
+            },
+            business_type="kpi",
         )

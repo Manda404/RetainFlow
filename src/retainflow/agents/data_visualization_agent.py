@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pandas as pd
 
+from retainflow.agents.activity import activity_item
 from retainflow.agents.base import AgentResponse
 from retainflow.tools.visualization_tool import VisualizationResult, VisualizationTool
 
@@ -54,5 +55,21 @@ class DataVisualizationAgent:
                 "chart_type": visual.chart_type,
                 "title": visual.title,
                 "output_path": str(visual.output_path) if visual.output_path else None,
+                "activity": [
+                    activity_item(
+                        id="step_1",
+                        agent="DataVisualizationAgent",
+                        tool="VisualizationTool",
+                        business_label="Business Visualization",
+                        status="completed",
+                        summary=f"Generated a {visual.chart_type} chart.",
+                        details={
+                            "chart_type": visual.chart_type,
+                            "title": visual.title,
+                            "output_path": str(visual.output_path) if visual.output_path else None,
+                        },
+                    )
+                ],
             },
+            business_type="visualization",
         )

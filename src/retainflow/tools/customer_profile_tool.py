@@ -18,7 +18,7 @@ class CustomerProfileTool:
         self.config = config
         self.sql_tool = sql_tool or SQLTool(config)
 
-    def by_customer_id(self, customer_id: str, limit: int = 10) -> SQLQueryResult:
+    def by_customer_id(self, customer_id: str, limit: int = 1) -> SQLQueryResult:
         """Return profile rows for one customer ordered by latest observation date."""
         return self.sql_tool.query(
             f"""

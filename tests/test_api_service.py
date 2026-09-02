@@ -41,6 +41,7 @@ def test_serialize_dataframe_response() -> None:
     payload = serialize_agent_response(response)
 
     assert payload["response_type"] == "table"
+    assert payload["business_type"] == "text"
     assert payload["data"] == [{"customer_id": "CUST_000001", "score": 0.8734, "missing": None}]
 
 
@@ -83,6 +84,8 @@ def test_no_external_branding_in_app_implementation() -> None:
 
     for root in scanned_roots:
         for path in root.rglob("*"):
+            if any(part in {"node_modules", "dist"} for part in path.parts):
+                continue
             if not path.is_file() or path.suffix not in scanned_suffixes:
                 continue
             content = path.read_text(encoding="utf-8").lower()

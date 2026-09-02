@@ -6,7 +6,9 @@ from retainflow.agents.data_visualization_agent import DataVisualizationAgent
 from retainflow.agents.email_drafting_agent import EmailDraftingAgent
 from retainflow.agents.explainability_agent import ExplainabilityAgent
 from retainflow.agents.kpi_agent import KPIAgent
+from retainflow.agents.llm_reasoning_agent import LLMReasoningAgent, LLMReasoningResult
 from retainflow.agents.llm_router import LLMRoute, LLMRouter
+from retainflow.agents.reasoning_orchestrator import CustomerReasoning, ReasoningOrchestrator
 from retainflow.agents.retention_advisor_agent import RetentionAdvisorAgent
 from retainflow.agents.sql_agent import SQLAgent
 from retainflow.agents.strategy_rag_agent import StrategyRAGAgent
@@ -19,8 +21,12 @@ __all__ = [
     "EmailDraftingAgent",
     "ExplainabilityAgent",
     "KPIAgent",
+    "LLMReasoningAgent",
+    "LLMReasoningResult",
     "LLMRoute",
     "LLMRouter",
+    "CustomerReasoning",
+    "ReasoningOrchestrator",
     "RetentionAdvisorAgent",
     "SQLAgent",
     "StrategyRAGAgent",

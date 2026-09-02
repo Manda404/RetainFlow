@@ -1,4 +1,5 @@
 .env
+.env.local
 .venv/
 .venv-ai/
 __pycache__/
@@ -33,3 +34,8 @@ reports/drift/*
 .matplotlib-cache
 .env-olds
 .run/
+app/node_modules/
+app/dist/
+app/*.tsbuildinfo
+app/vite.config.js
+app/vite.config.d.ts

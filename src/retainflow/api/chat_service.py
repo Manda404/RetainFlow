@@ -11,6 +11,7 @@ import pandas as pd
 from plotly.graph_objects import Figure
 
 from retainflow.agents import StrategyRAGAgent, SupervisorAgent
+from retainflow.agents.activity import activity_item
 from retainflow.agents.base import AgentResponse
 from retainflow.config import ChurnModelConfig
 from retainflow.tools.sql_tool import SQLTool
@@ -47,7 +48,27 @@ class AgentAPIService:
             agent_name="SQLTool",
             answer=f"Query executed with {result.row_count} returned rows.",
             data=result.dataframe,
-            metadata={"sql": result.sql, "row_count": result.row_count, "truncated": result.truncated},
+            metadata={
+                "sql": result.sql,
+                "row_count": result.row_count,
+                "truncated": result.truncated,
+                "activity": [
+                    activity_item(
+                        id="step_1",
+                        agent="SQLTool",
+                        tool="SQLTool",
+                        business_label="Customer Data",
+                        status="completed",
+                        summary=f"Executed read-only SQL and returned {result.row_count} rows.",
+                        details={
+                            "rows": result.row_count,
+                            "truncated": result.truncated,
+                            "sql": result.sql,
+                        },
+                    )
+                ],
+            },
+            business_type="data_table",
         )
         return serialize_agent_response(response)
 
@@ -58,6 +79,7 @@ def serialize_agent_response(response: AgentResponse) -> dict[str, Any]:
         "agent_name": response.agent_name,
         "answer": response.answer,
         "response_type": "text",
+        "business_type": response.business_type,
         "data": None,
         "figure": None,
         "metadata": _json_ready(response.metadata),

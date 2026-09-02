@@ -37,6 +37,9 @@ class LLMRouter:
         "email",
         "strategy",
         "customer_profile",
+        "data_count",
+        "data_query",
+        "unsupported",
     }
 
     def __init__(
@@ -103,8 +106,10 @@ class LLMRouter:
                         "You are the routing supervisor for RetainFlow, an insurance churn "
                         "and retention analytics app. Classify the user question into exactly "
                         "one intent from this list: retention, kpi, visualization, email, "
-                        "strategy, customer_profile. Return only JSON with keys intent, "
-                        "reason, confidence. Do not write SQL."
+                        "strategy, customer_profile, data_count, data_query, unsupported. Use data_query "
+                        "for safe customer-data exploration that does not ask for churn prediction. Use unsupported when "
+                        "the question is outside RetainFlow capabilities or cannot be mapped safely. "
+                        "Return only JSON with keys intent, reason, confidence. Do not write SQL."
                     ),
                 },
                 {"role": "user", "content": question},
